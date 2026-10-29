@@ -72,5 +72,3 @@ class, then add a case to `VisualEffectKind`. See `Sources/MatrixRain.swift` for
 | `Sources/Visuals.swift` | Visuals window and the effect list |
 | `Sources/MatrixRain.swift`, `Sources/PsychedelicFractal.swift` | The visual effects |
 | `tools/make-icon.swift` | Draws the app icon |
-
-See [ROADMAP.md](ROADMAP.md) for planned work.
