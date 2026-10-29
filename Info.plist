@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Kept from the app's original name so saved settings and the login item carry over. -->
+	<key>CFBundleIdentifier</key>
+	<string>com.henrip.AirEQ</string>
+	<key>CFBundleIconFile</key>
+	<string>Railgun</string>
+	<key>CFBundleName</key>
+	<string>Railgun</string>
+	<key>CFBundleExecutable</key>
+	<string>Railgun</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.4</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Railgun processes your Mac's audio to apply your EQ and room effect.</string>
+</dict>
+</plist>
