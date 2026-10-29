@@ -16,23 +16,36 @@ It also has an optional visuals window, starting with a beat-reacting Matrix rai
 - Visuals window (double-click for full screen, Esc to exit)
 - Launch at login
 
+## Install
+
+1. Download the latest `.dmg` from [Releases](../../releases).
+2. Open it and drag **Railgun** onto the **Applications** shortcut.
+3. Open Railgun from Applications. It lives in the menu bar (no Dock icon).
+
+**First launch:** Railgun isn't notarized by Apple (that needs a paid developer account), so
+macOS blocks it the first time. Try to open it once, then go to System Settings →
+Privacy & Security, scroll down and click **Open Anyway** next to Railgun. You only do this once.
+
+Then macOS asks for permission to record system audio. Allow it, otherwise Railgun has nothing
+to process. If sound ever cuts out, check System Settings → Privacy & Security →
+Screen & System Audio Recording and make sure Railgun is on.
+
+Turn on **Launch at login** in the menu once Railgun is in Applications.
+
 ## Requirements
 
 - macOS 14.4 or later (uses the Core Audio process-tap API)
 - Apple Silicon Mac
-- Xcode Command Line Tools (`xcode-select --install`) to build
+- Xcode Command Line Tools (`xcode-select --install`), only if you build it yourself
 
-## Build and run
+## Build from source
 
 ```bash
-./build.sh
-open build/Railgun.app
+./build.sh        # builds build/Railgun.app
+./package.sh      # also packs a drag-to-Applications .dmg
 ```
 
-On first launch macOS asks for permission to record system audio. Allow it, otherwise Railgun
-has nothing to process. If you rebuild, macOS may ask again because the app is signed ad hoc.
-To keep it across rebuilds, allow Railgun in System Settings → Privacy & Security →
-Screen & System Audio Recording.
+Rebuilt copies are signed ad hoc, so macOS may ask for the audio permission again.
 
 ## How it works
 
