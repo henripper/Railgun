@@ -5,32 +5,49 @@ import QuartzCore
 protocol Visualizer: AnyObject {
     func update(features: AudioFeatures, dt: Double, size: CGSize)
     func draw(in ctx: CGContext, size: CGSize)
+    /// Pixels per point to render at, or nil for the screen's full resolution. Heavy effects
+    /// return less than 1 on big windows; the GPU then stretches the result to fit.
+    func pixelScale(for size: CGSize) -> CGFloat?
+}
+
+extension Visualizer {
+    func pixelScale(for size: CGSize) -> CGFloat? { nil }
 }
 
 enum VisualEffectKind: String, CaseIterable, Identifiable {
     case matrixRain
+    case psychedelic
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .matrixRain: "Matrix Rain"
+        case .psychedelic: "Psychedelic Fractal"
         }
     }
 
     func make() -> Visualizer {
         switch self {
         case .matrixRain: MatrixRain()
+        case .psychedelic: PsychedelicFractal()
         }
     }
 }
 
 /// Drives the analyzer and the current effect from the display's refresh.
 final class VisualsView: NSView {
-    var effect: Visualizer
+    var effect: Visualizer {
+        didSet {
+            offscreen = nil
+            layer?.contents = nil
+            needsDisplay = true
+        }
+    }
     let analyzer: AudioAnalyzer
     private var displayLink: CADisplayLink?
     private var lastTimestamp: CFTimeInterval = 0
+    private var offscreen: CGContext?
 
     init(effect: Visualizer, analyzer: AudioAnalyzer) {
         self.effect = effect
@@ -38,6 +55,8 @@ final class VisualsView: NSView {
         super.init(frame: .zero)
         wantsLayer = true
         layerContentsRedrawPolicy = .onSetNeedsDisplay
+        layer?.contentsGravity = .resize
+        layer?.magnificationFilter = .linear
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
@@ -65,7 +84,28 @@ final class VisualsView: NSView {
         lastTimestamp = now
         analyzer.update(dt: dt)
         effect.update(features: analyzer.features, dt: dt, size: bounds.size)
-        needsDisplay = true
+        if let scale = effect.pixelScale(for: bounds.size) {
+            renderScaled(scale)
+        } else {
+            needsDisplay = true
+        }
+    }
+
+    /// Draws into a smaller bitmap and hands it to the layer, so Core Animation does the upscaling.
+    private func renderScaled(_ scale: CGFloat) {
+        let pixels = CGSize(width: max(1, (bounds.width * scale).rounded()),
+                            height: max(1, (bounds.height * scale).rounded()))
+        if offscreen?.width != Int(pixels.width) || offscreen?.height != Int(pixels.height) {
+            offscreen = CGContext(data: nil, width: Int(pixels.width), height: Int(pixels.height), bitsPerComponent: 8,
+                                  bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        }
+        guard let ctx = offscreen else { return }
+        ctx.saveGState()
+        ctx.scaleBy(x: pixels.width / bounds.width, y: pixels.height / bounds.height)
+        effect.draw(in: ctx, size: bounds.size)
+        ctx.restoreGState()
+        layer?.contents = ctx.makeImage()
     }
 
     override func draw(_ dirtyRect: NSRect) {

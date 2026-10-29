@@ -43,6 +43,7 @@ final class SampleRing {
 /// What a visual effect gets each frame. All values are normalised to 0...1.
 struct AudioFeatures {
     static let bandCount = 48
+    static let waveformCount = 256
 
     var bands = [Float](repeating: 0, count: bandCount)  // log-spaced 40 Hz – 16 kHz
     var level: Float = 0
@@ -50,6 +51,7 @@ struct AudioFeatures {
     var treble: Float = 0
     var beat = false          // true on the frame a beat is detected
     var beatPulse: Float = 0  // jumps to 1 on a beat, then decays
+    var waveform = [Float](repeating: 0, count: waveformCount)  // -1...1, auto-gained oscilloscope trace
 }
 
 /// Turns the sample ring into spectrum bands and beat events, once per display frame.
@@ -70,6 +72,7 @@ final class AudioAnalyzer {
     private var bassHistory = [Float](repeating: 0, count: 45)
     private var bassHistoryIndex = 0
     private var sinceBeat: Double = 1
+    private var waveEnvelope: Float = 0.1
     private(set) var features = AudioFeatures()
 
     /// Higher = beats trigger more easily.
@@ -88,9 +91,10 @@ final class AudioAnalyzer {
         let rate = sampleRate()
         guard flowing, rate > 0 else { decay(dt: dt); return }
 
+        var next = features
+        updateWaveform(&next.waveform, dt: dt)  // before computePower, which windows `samples` in place
         computePower()
         let binHz = Float(rate) / Float(Self.fftSize)
-        var next = features
         next.beat = false
 
         // Log-spaced bands, auto-gained against a slowly falling peak so quiet music still moves.
@@ -144,6 +148,23 @@ final class AudioAnalyzer {
         features.treble *= factor
         features.beat = false
         features.beatPulse = max(0, features.beatPulse - Float(dt) * 3.5)
+        for index in features.waveform.indices { features.waveform[index] *= factor }
+    }
+
+    /// Averages the newest samples down to `waveformCount` points and scales them against a
+    /// slowly falling peak, so quiet music still draws a full-height trace.
+    private func updateWaveform(_ waveform: inout [Float], dt: Double) {
+        let stride = Self.fftSize / AudioFeatures.waveformCount
+        var peak: Float = 0
+        for point in 0..<AudioFeatures.waveformCount {
+            var total: Float = 0
+            for offset in 0..<stride { total += samples[point * stride + offset] }
+            waveform[point] = total / Float(stride)
+            peak = max(peak, abs(waveform[point]))
+        }
+        waveEnvelope = max(peak, waveEnvelope - Float(dt) * 0.4, 0.05)
+        let gain = 0.9 / waveEnvelope
+        for point in waveform.indices { waveform[point] = min(max(waveform[point] * gain, -1), 1) }
     }
 
     private func computePower() {
