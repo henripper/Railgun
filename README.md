@@ -5,8 +5,9 @@ plays, runs it through a 10-band EQ, a room reverb and a peak limiter, and sends
 current output device (AirPods, speakers, anything). There are no time limits, no virtual audio
 driver and no server.
 
-It also has an optional visuals window with beat-reacting effects: Matrix rain, and a
-Winamp-style psychedelic fractal with glowing oscilloscope lines.
+It also has an optional visuals window with beat-reacting effects: Matrix rain, a
+Winamp-style psychedelic fractal with glowing oscilloscope lines, and a retro pixel-art globe
+with satellites that scan the surface to the beat.
 
 ## Features
 
@@ -70,5 +71,5 @@ class, then add a case to `VisualEffectKind`. See `Sources/MatrixRain.swift` for
 | `Sources/RailgunApp.swift` | Menu-bar UI |
 | `Sources/AudioAnalyzer.swift` | FFT bands and beat detection |
 | `Sources/Visuals.swift` | Visuals window and the effect list |
-| `Sources/MatrixRain.swift`, `Sources/PsychedelicFractal.swift` | The visual effects |
+| `Sources/MatrixRain.swift`, `Sources/PsychedelicFractal.swift`, `Sources/PixelGlobe.swift` | The visual effects |
 | `tools/make-icon.swift` | Draws the app icon |

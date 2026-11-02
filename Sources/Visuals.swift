@@ -8,15 +8,19 @@ protocol Visualizer: AnyObject {
     /// Pixels per point to render at, or nil for the screen's full resolution. Heavy effects
     /// return less than 1 on big windows; the GPU then stretches the result to fit.
     func pixelScale(for size: CGSize) -> CGFloat?
+    /// True when a scaled-up render should keep hard pixel edges instead of being smoothed (pixel art).
+    var crispScaling: Bool { get }
 }
 
 extension Visualizer {
     func pixelScale(for size: CGSize) -> CGFloat? { nil }
+    var crispScaling: Bool { false }
 }
 
 enum VisualEffectKind: String, CaseIterable, Identifiable {
     case matrixRain
     case psychedelic
+    case pixelGlobe
 
     var id: String { rawValue }
 
@@ -24,6 +28,7 @@ enum VisualEffectKind: String, CaseIterable, Identifiable {
         switch self {
         case .matrixRain: "Matrix Rain"
         case .psychedelic: "Psychedelic Fractal"
+        case .pixelGlobe: "Pixel Globe"
         }
     }
 
@@ -31,6 +36,7 @@ enum VisualEffectKind: String, CaseIterable, Identifiable {
         switch self {
         case .matrixRain: MatrixRain()
         case .psychedelic: PsychedelicFractal()
+        case .pixelGlobe: PixelGlobe()
         }
     }
 }
@@ -101,6 +107,7 @@ final class VisualsView: NSView {
                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
         }
         guard let ctx = offscreen else { return }
+        layer?.magnificationFilter = effect.crispScaling ? .nearest : .linear
         ctx.saveGState()
         ctx.scaleBy(x: pixels.width / bounds.width, y: pixels.height / bounds.height)
         effect.draw(in: ctx, size: bounds.size)
